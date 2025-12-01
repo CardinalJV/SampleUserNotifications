@@ -9,9 +9,16 @@ import SwiftUI
 
 @main
 struct SampleUserNotificationsApp: App {
+    
+    @State private var notificationController = NotificationController()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    await notificationController.requestAuthorization()
+                }
         }
+        .environment(self.notificationController)
     }
 }
