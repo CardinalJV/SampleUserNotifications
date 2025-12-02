@@ -20,6 +20,22 @@ import UserNotifications
         }
     }
     
+    func getNotificationSettings() async -> String {
+        let settings = await center.notificationSettings()
+        switch settings.authorizationStatus {
+        case .authorized:
+            return "Authorized"
+        case .denied:
+            return "Denied"
+        case .notDetermined:
+            return "Not Determined"
+        case .ephemeral:
+            return "Ephemeral"
+        default:
+            return "Unknown"
+        }
+    }
+    
     func createNotification(hour: Int, minute: Int, title: String, body: String) async {
         let content = UNMutableNotificationContent()
         content.title = title
@@ -34,35 +50,6 @@ import UserNotifications
             await self.getPendingNotificationRequests()
         } catch {
             print("Error during adding notification: \(error.localizedDescription)")
-        }
-    }
-    
-    func createBadgeInAndOutNotification() async {
-        // Badge-in
-        let badgeInContent = UNMutableNotificationContent()
-        badgeInContent.title = "Apple developer academy"
-        badgeInContent.body = "Badge-in"
-        var dateIn = DateComponents()
-        dateIn.hour = 14
-        dateIn.minute = 0
-        let triggerIn = UNCalendarNotificationTrigger(dateMatching: dateIn, repeats: true)
-        // Badge-Out
-        let badgeOutContent = UNMutableNotificationContent()
-        badgeOutContent.title = "Apple developer academy"
-        badgeOutContent.body = "Badge-out"
-        var dateOut = DateComponents()
-        dateOut.hour = 18
-        dateOut.minute = 0
-        let triggerOut = UNCalendarNotificationTrigger(dateMatching: dateOut, repeats: true)
-        // Request for both
-        let badgeInRequest = UNNotificationRequest(identifier: "badgeIn-notification", content: badgeInContent, trigger: triggerIn)
-        let badgeOutRequest = UNNotificationRequest(identifier: "badgeOut-notification", content: badgeOutContent, trigger: triggerOut)
-        do {
-            try await center.add(badgeInRequest)
-            try await center.add(badgeOutRequest)
-            await self.getPendingNotificationRequests()
-        } catch {
-            print("Error during setting notification: \(error.localizedDescription)")
         }
     }
     

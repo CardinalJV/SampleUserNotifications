@@ -16,6 +16,8 @@ struct ContentView: View {
     @State var notificationHour: Int = 0
     @State var notificationMinute: Int = 0
     
+    @State var notificationSettings = ""
+    
     var body: some View {
         VStack {
             Spacer()
@@ -45,7 +47,7 @@ struct ContentView: View {
                         notificationController.removeAllPendingNotificationRequests()
                     }
                     .padding()
-                    .background(.blue)
+                    .background(.red)
                     .foregroundStyle(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
@@ -56,8 +58,19 @@ struct ContentView: View {
             Spacer()
             // MARK: - Notifications settings status
             Section {
-                
+                HStack {
+                    Text("Notification settings")
+                    if !self.notificationSettings.isEmpty {
+                        Text(self.notificationSettings)
+                            .foregroundStyle(.blue)
+                            .bold()
+                    }
+                }
             }
+            .padding()
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            Spacer()
             // MARK: - Create custom notification
             Section {
                 VStack {
@@ -99,6 +112,9 @@ struct ContentView: View {
             .background(Color(.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 20))
             Spacer()
+        }
+        .task {
+            self.notificationSettings = await notificationController.getNotificationSettings()
         }
     }
 }
