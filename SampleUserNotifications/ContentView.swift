@@ -13,10 +13,23 @@ struct ContentView: View {
     
     @State var notificationTitle: String = ""
     @State var notificationBody: String = ""
+    @State var notificationYear: Int = 0
+    @State var notificatonMonth: Int = 0
+    @State var notificationDay: Int = 0
     @State var notificationHour: Int = 0
     @State var notificationMinute: Int = 0
-    
     @State var notificationSettings = ""
+    
+    @State private var showMonthAndDayPicker: Bool = false
+    
+    let months = Calendar.current.monthSymbols
+    
+    private func resetForm() {
+        self.notificationTitle.removeAll()
+        self.notificationBody.removeAll()
+        self.notificationHour = 0
+        self.notificationMinute = 0
+    }
     
     var body: some View {
         VStack {
@@ -28,10 +41,7 @@ struct ContentView: View {
                         Text("No notification pending")
                     } else {
                         ForEach(notificationController.notificationsRequests, id: \.self) { notification in
-                            Text(notification.content.title + " : " + notification.content.body)
-                                .padding()
-                                .background(Color(.systemGray4))
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                            NotificationView(notificationRequest: notification)
                         }
                     }
                     Button("Get notification pending requests") {
@@ -96,9 +106,35 @@ struct ContentView: View {
                             }
                         }
                     }
+                    if showMonthAndDayPicker {
+                        HStack {
+                            Text("Month")
+                            Spacer()
+                            Picker("Month", selection: $notificatonMonth) {
+                                ForEach(1...12, id: \.self) { index in
+                                    Text(months[index - 1])
+                                        .tag(index)
+                                }
+                            }
+                        }
+                        HStack {
+                            Text("Day")
+                            Spacer()
+                            Picker("Day", selection: $notificationDay) {
+                                ForEach(1...31, id: \.self) { day in
+                                    Text("\(day)")
+                                        .tag(day)
+                                }
+                            }
+                        }
+                    }
+                    Button("Show day and month") {
+                        self.showMonthAndDayPicker.toggle()
+                    }
                     Button("Create notification") {
                         Task {
-                            await notificationController.createNotification(hour: self.notificationHour, minute: self.notificationMinute, title: self.notificationTitle, body: self.notificationBody)
+                            await notificationController.createNotification(year: self.notificationYear, month: self.notificatonMonth, day: self.notificationDay, hour: self.notificationHour, minute: self.notificationMinute, title: self.notificationTitle, body: self.notificationBody)
+                            self.resetForm()
                         }
                         UIApplication.shared.endEditing()
                     }
@@ -118,18 +154,45 @@ struct ContentView: View {
         }
     }
 }
+
+struct NotificationView: View {
+    
+    let notificationRequest: UNNotificationRequest
+    
+    @State var date: String = ""
+    
+    private func getNotificationDate(trigger: UNCalendarNotificationTrigger) -> String {
+        let dateComponents = trigger.dateComponents
+        let calendar = Calendar.current
+        if let date = calendar.date(from: dateComponents) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd/MM/yyyy HH:mm"
+            let str = formatter.string(from: date)
+            return str
+        }
+        return ""
+    }
+    
+    var body: some View {
+        VStack {
+            Text(self.notificationRequest.content.title + " : " + self.notificationRequest.content.body)
+                .padding()
+                .background(Color(.systemGray4))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+            Text(self.date)
+        }
+        .task {
+            if let trigger = self.notificationRequest.trigger {
+                self.date = self.getNotificationDate(trigger: trigger as! UNCalendarNotificationTrigger)
+            }
+        }
+    }
+}
+
 // Extension to dismiss the keyboard
 extension UIApplication {
     func endEditing() {
         sendAction(#selector(UIResponder.resignFirstResponder),
                    to: nil, from: nil, for: nil)
     }
-}
-
-#Preview {
-    
-    @Previewable var notificationController = NotificationController()
-    
-    ContentView()
-        .environment(notificationController)
 }

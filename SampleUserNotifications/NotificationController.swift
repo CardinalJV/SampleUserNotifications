@@ -10,7 +10,7 @@ import UserNotifications
 @Observable class NotificationController: NSObject, UNUserNotificationCenterDelegate {
     
     let center = UNUserNotificationCenter.current()
-    // Will stock the pending notification
+    // Will stock pending notification
     var notificationsRequests: [UNNotificationRequest] = []
     
     func requestAuthorization() async {
@@ -37,13 +37,22 @@ import UserNotifications
         }
     }
     
-    func createNotification(hour: Int, minute: Int, title: String, body: String) async {
+    func createNotification(year: Int?, month: Int?, day: Int?, hour: Int, minute: Int, title: String, body: String) async {
         /// Init the content of the notification
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         /// Init the date to display notification
         var dateComponents = DateComponents()
+        if let year = year {
+            dateComponents.year = year
+        }
+        if let month = month {
+            dateComponents.month = month
+        }
+        if let day = day {
+            dateComponents.day = day
+        }
         dateComponents.hour = hour
         dateComponents.minute = minute
         /// Init the trigger that will sets the date components
