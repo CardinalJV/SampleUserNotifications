@@ -20,13 +20,17 @@ struct ContentView: View {
     @State var notificationMinute: Int = 0
     @State var notificationSettings = ""
     
-    @State private var showMonthAndDayPicker: Bool = false
+    @State private var showMonthDayAndYearPicker: Bool = false
     
     let months = Calendar.current.monthSymbols
+    let currentYear = Calendar.current.component(.year, from: Date())
     
     private func resetForm() {
         self.notificationTitle.removeAll()
         self.notificationBody.removeAll()
+        self.notificationYear = 0
+        self.notificatonMonth = 0
+        self.notificationDay = 0
         self.notificationHour = 0
         self.notificationMinute = 0
     }
@@ -106,7 +110,17 @@ struct ContentView: View {
                             }
                         }
                     }
-                    if showMonthAndDayPicker {
+                    if showMonthDayAndYearPicker {
+                        HStack {
+                            Text("Year")
+                            Spacer()
+                            Picker("Year", selection: $notificationYear) {
+                                ForEach(currentYear...(currentYear + 1), id: \.self) { year in
+                                    Text(String(year))
+                                        .tag(year)
+                                }
+                            }
+                        }
                         HStack {
                             Text("Month")
                             Spacer()
@@ -129,7 +143,7 @@ struct ContentView: View {
                         }
                     }
                     Button("Show day and month") {
-                        self.showMonthAndDayPicker.toggle()
+                        self.showMonthDayAndYearPicker.toggle()
                     }
                     Button("Create notification") {
                         Task {
